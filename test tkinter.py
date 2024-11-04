@@ -10,7 +10,7 @@ couleurs = {
     "JOEUR": "yellow"
 
 }
-
+#test pour commit
 
 class Case:
     def __init__(self, type):
