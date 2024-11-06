@@ -7,7 +7,7 @@ couleurs = {   #sert pour la couleur des cases
     "EVENT": "purple",
     "DEPART": "green",
     "ARRIVE": "red",
-    "JOEUR": "yellow"
+    "JOUEUR": "yellow"
 
 }
 
@@ -33,6 +33,7 @@ class Plateau:
         self.cases = self.createCases(nbCases)   # On créé un certain nombre (nbcases) de Case
         self.plat = self.fairePlateau()
         self.plat = self.clearMat(self.plat)
+        self.joueur = Joueur(self.trouveDepart())
 
     def createCases(self, nbCase):
         """
@@ -87,6 +88,12 @@ class Plateau:
                     j.pop(i)
         return plat
 
+
+    def trouveDepart(self):
+        for i in range(len(self.plat)):
+            for j in range(len(self.plat[i])):
+                if self.plat[i][j].type == "DEPART":
+                    return (i,j)
     def fairePlateau(self):
         """
         On essaye de faire placer toute les cases de self.cases l'une a la suite de l'autre de facon aléatoire, une case peut
@@ -94,6 +101,7 @@ class Plateau:
         :return:
         """
         temp = 0 # mettre un .time() pour avoir 220 sec de charge ou moins, on essaye {tentative} fois avec une taille de plateau et apres on augmente la taille
+
         while temp < 100000:
             tentative = 0
             while tentative < 100:
@@ -101,7 +109,6 @@ class Plateau:
                     pos = (random.randint(0, self.size - 1), random.randint(0, self.size - 1))   #position de la case depart
                     plat = [[Case("VIDE") for i in range(self.size)] for j in range(self.size)]      #on remplit le plateau de cases vide
                     ban = {pos}    #stok les positions utilisé
-
                     for cas in self.cases:
                         plat[pos[0]][pos[1]] = cas
 
@@ -127,6 +134,7 @@ class Plateau:
                         if not find:
                             raise Exception("Pas de place")
                     print(self.size,tentative)
+
                     return (plat)
                 except:
                     tentative += 1
@@ -151,6 +159,10 @@ class Plateau:
                 x1, y1 = x0 + tailleCase, y0 + tailleCase # coins bat droite
                 canvas.create_rectangle(x0, y0, x1, y1, fill=couleur, outline=("black" if couleur != "white" else ""))
 
+        joueurY = self.joueur.pos[0] * tailleCase + tailleCase // 2
+        joueurX = self.joueur.pos[1] * tailleCase + tailleCase // 2
+        canvas.create_oval(joueurX - tailleCase // 4, joueurY - tailleCase // 4, joueurX + tailleCase // 4, joueurY + tailleCase // 4, fill=couleurs["JOUEUR"])
+
         root.mainloop()
 
     def __str__(self):
@@ -172,5 +184,5 @@ class Plateau:
         return s
 
 
-t = Plateau(300)
+t = Plateau(60)
 t.afficher()
