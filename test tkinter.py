@@ -1,5 +1,6 @@
 import tkinter as tk
 import random
+from pynput import keyboard
 couleurs = {   #sert pour la couleur des cases
     "VIDE": "white",
     "NEUTRE": "blue",
@@ -27,18 +28,78 @@ class Joueur:
     def deplacer(self):
         pass
 
+class Phrase:
+    def __init__(self):
+        self.phrase= ["J'aime les pommes","Je roule en voiture","Je suis dans le bus"]
+    def lancer(self):
+        phrase= random.choice(self.phrase)
+        print("Votre phrase à écrire a l'envers est ", phrase)
+        phraseSaisi= input("Votre réponse ")
+        if phraseSaisi == phrase[::-1]:
+            print("bravo")
+            return True
+        else:
+            print(f"pas brave")
+            return False
+
+class Combi:
+    def __init__(self):
+        self.touches = ['Haut', 'Bas', 'Gauche', 'Droite']
+        self.longCombi= 15
+
+    def generCombi(self):
+        return random.choices(self.touches, k = self.longCombi)
+
+    def lancer(self):
+        self.res = self.generCombi()
+        self.saisi = []
+        print("La combi a reproduire est ",self.res)
+        with keyboard.Listener(on_press=self.onPress) as listener:
+            listener.join()
+
+    def onPress(self, key):
+        try:
+            if key == keyboard.Key.up:
+                self.saisi.append('Haut')
+            elif key == keyboard.Key.down:
+                self.saisi.append('Bas')
+            elif key == keyboard.Key.left:
+                self.saisi.append('Gauche')
+            elif key == keyboard.Key.right:
+                self.saisi.append('Droite')
+
+            if len(self.saisi) == len(self.res):
+                self.check()
+                return False
+
+        except AttributeError:
+            pass
+
+    def check(self):
+        if self.saisi == self.res:
+            print("bravo")
+
+        else:
+            print("pas bravo")
+
+        return False
 
 class Plateau:
     def __init__(self, nbCases):
         self.size = 50    # dimension du carré dans lequel on va essayer de placer les cases
         self.cases = self.createCases(nbCases)   # On créé un certain nombre (nbcases) de Case
+        self.largeurFenetre,self.hauteurFenetre = 800,600
         self.plat = self.fairePlateau()
         self.plat = self.clearMat(self.plat)
         self.joueur = Joueur(0)
         self.putPosInCase()
-        print(self.joueur.pos)
-        print(self.cases[0].position)
-        print(self.cases[len(self.cases)-1].position)
+        pays=[]
+        for letter in range(ord('a'), ord('z') + 1):
+            pays.append(f"trouve un pays commancant par {letter}")
+        self.defi = ["fait 5 pompes", "dis l'alphabept a l'envers",pays, "compte jusqu'a 100 le plus vite possible" , "tiens en équilibre pendant 10 sec " ]
+
+
+        self.jeu = [Phrase(),Combi()]
     def putPosInCase(self):
         prec=None
         act = self.trouveDepart()
@@ -152,7 +213,6 @@ class Plateau:
                                     find = True
                         if not find:
                             raise Exception("Pas de place")
-                    print(self.size,tentative)
 
                     return (plat)
                 except:
@@ -161,8 +221,31 @@ class Plateau:
             self.size +=5
     def lancerDe(self):
         num= random.randint(1,6)
-        self.joueur.pos += (num if (self.joueur.pos + num) < len(self.cases) else len(self.cases)-self.joueur.pos)
+        self.joueur.pos += (num if (self.joueur.pos + num) < len(self.cases) else len(self.cases)-1-self.joueur.pos)
         self.afficherPlateau()
+
+        if self.cases[self.joueur.pos].type == "JEU" :
+            self.root.update_idletasks()
+
+            random.choice(self.jeu).lancer()
+
+        elif self.cases[self.joueur.pos].type == "EVENT":
+            self.plat = self.fairePlateau()
+            self.plat = self.clearMat(self.plat)
+            self.putPosInCase()
+            self.tailleCase=self.calculateCaseSize()
+            self.afficherPlateau()
+        elif self.cases[self.joueur.pos].type == "ARRIVE":
+            print("win gg")
+            self.root.quit()
+
+        else:
+            if random.randint(1,10) >4:
+                t=(random.choice(self.defi))
+                if type(t)== list:
+                    t=random.choice(t)
+                print(t)
+
         return num
 
     def afficherPlateau(self):
@@ -177,15 +260,20 @@ class Plateau:
         joueurY = self.cases[self.joueur.pos].position[0] * self.tailleCase + self.tailleCase // 2
         joueurX = self.cases[self.joueur.pos].position[1] * self.tailleCase + self.tailleCase // 2
         self.canvas.create_oval(joueurX - self.tailleCase // 4, joueurY - self.tailleCase // 4, joueurX + self.tailleCase // 4, joueurY + self.tailleCase // 4, fill=couleurs["JOUEUR"])
+
+    def calculateCaseSize(self):
+
+        return min(self.hauteurFenetre // len(self.plat),self.largeurFenetre // len(self.plat[0]))
+
     def afficher(self):
         self.root = tk.Tk()
         self.root.title("Plateau Interface")
-        hauteurFenetre = 600
-        largeurFenetre = 800
 
-        self.tailleCase = min(hauteurFenetre // len(self.plat),largeurFenetre // len(self.plat[0])) #pour avoir des cases carres
 
-        self.canvas = tk.Canvas(self.root, width=largeurFenetre, height=hauteurFenetre)
+        self.tailleCase = self.calculateCaseSize()
+
+
+        self.canvas = tk.Canvas(self.root, width=self.largeurFenetre, height=self.hauteurFenetre)
         self.canvas.pack()
 
         boutonDe = tk.Button(self.root, text="Lancer le dé", command=self.lancerDe)
