@@ -14,6 +14,7 @@ couleurs = {   #sert pour la couleur des cases
 class Case:
     def __init__(self, type):
         self.type = type  # Met le type de cases mini jeu,depart , neutre, ....
+        self.position= None
 
     def __str__(self):     # pour afficher en console la case avec print(Case)
         return f"{self.type}"
@@ -33,7 +34,25 @@ class Plateau:
         self.cases = self.createCases(nbCases)   # On créé un certain nombre (nbcases) de Case
         self.plat = self.fairePlateau()
         self.plat = self.clearMat(self.plat)
-        self.joueur = Joueur(self.trouveDepart())
+        self.joueur = Joueur(0)
+        self.putPosInCase()
+        print(self.joueur.pos)
+        print(self.cases[0].position)
+        print(self.cases[len(self.cases)-1].position)
+    def putPosInCase(self):
+        prec=None
+        act = self.trouveDepart()
+        self.cases[0].position = act
+        for i in range(1,len(self.cases)):
+
+            voisins = [(act[0] + 1, act[1]), (act[0] - 1, act[1]), (act[0], act[1] + 1), (act[0], act[1] - 1)]
+            for v in voisins:
+                if 0 <= v[0] < len(self.plat) and 0 <= v[1] < len(self.plat[0]) and self.plat[v[0]][v[1]].type != "VIDE" and v != prec:
+                    self.cases[i].position = v
+                    prec=act
+                    act=v
+                    break
+
 
     def createCases(self, nbCase):
         """
@@ -43,8 +62,8 @@ class Plateau:
         :return: List(Case)
         """
         cases = [Case("DEPART")]
-        eventProb = 0.05
-        miniProb = 0.1
+        eventProb = 0.025
+        miniProb = 0.05
         possiblilite = ["NEUTRE", "JEU", "EVENT"]
         probabilites = [1 - miniProb - eventProb, miniProb, eventProb]  #probabilité associé au différente possibilié, il faudrait en faire un dictionnaire
 
@@ -140,49 +159,55 @@ class Plateau:
                     tentative += 1
             temp +=1
             self.size +=5
+    def lancerDe(self):
+        num= random.randint(1,6)
+        self.joueur.pos += (num if (self.joueur.pos + num) < len(self.cases) else len(self.cases)-self.joueur.pos)
+        self.afficherPlateau()
+        return num
 
-    def afficher(self):
-        root = tk.Tk()
-        root.title("Plateau Interface")
-        hauteurFenetre = 600
-        largeurFenetre = 800
-
-        tailleCase = min(hauteurFenetre // len(self.plat),largeurFenetre // len(self.plat[0])) #pour avoir des cases carres
-
-        canvas = tk.Canvas(root, width=largeurFenetre, height=hauteurFenetre)
-        canvas.pack()
-
+    def afficherPlateau(self):
+        self.canvas.delete('all')
         for i in range(len(self.plat)):
             for j in range(len(self.plat[i])):
                 couleur = couleurs[self.plat[i][j].type]
-                x0, y0 = j * tailleCase, i * tailleCase  # coins haut gauche
-                x1, y1 = x0 + tailleCase, y0 + tailleCase # coins bat droite
-                canvas.create_rectangle(x0, y0, x1, y1, fill=couleur, outline=("black" if couleur != "white" else ""))
+                x0, y0 = j * self.tailleCase, i * self.tailleCase  # coins haut gauche
+                x1, y1 = x0 + self.tailleCase, y0 + self.tailleCase # coins bat droite
+                self.canvas.create_rectangle(x0, y0, x1, y1, fill=couleur, outline=("black" if couleur != "white" else ""))
 
-        joueurY = self.joueur.pos[0] * tailleCase + tailleCase // 2
-        joueurX = self.joueur.pos[1] * tailleCase + tailleCase // 2
-        canvas.create_oval(joueurX - tailleCase // 4, joueurY - tailleCase // 4, joueurX + tailleCase // 4, joueurY + tailleCase // 4, fill=couleurs["JOUEUR"])
+        joueurY = self.cases[self.joueur.pos].position[0] * self.tailleCase + self.tailleCase // 2
+        joueurX = self.cases[self.joueur.pos].position[1] * self.tailleCase + self.tailleCase // 2
+        self.canvas.create_oval(joueurX - self.tailleCase // 4, joueurY - self.tailleCase // 4, joueurX + self.tailleCase // 4, joueurY + self.tailleCase // 4, fill=couleurs["JOUEUR"])
+    def afficher(self):
+        self.root = tk.Tk()
+        self.root.title("Plateau Interface")
+        hauteurFenetre = 600
+        largeurFenetre = 800
 
-        root.mainloop()
+        self.tailleCase = min(hauteurFenetre // len(self.plat),largeurFenetre // len(self.plat[0])) #pour avoir des cases carres
+
+        self.canvas = tk.Canvas(self.root, width=largeurFenetre, height=hauteurFenetre)
+        self.canvas.pack()
+
+        boutonDe = tk.Button(self.root, text="Lancer le dé", command=self.lancerDe)
+        boutonDe.pack()
+        self.afficherPlateau()
+
+        self.root.mainloop()
 
     def __str__(self):
         """
         affichage du plateau en consoel si besoins print(Plateau)
         :return:
         """
-        if not self.plat:
-            return 'prob'
-        s = ""
-        for row in self.plat:
-            if s:
-                s += " \n"
-            for elem in row:
-                if elem > 9:
-                    s += str(elem) + " "
-                else:
-                    s += str(elem) + "  "
-        return s
+        res='['
+        for ligne in self.plat:
+            temp='['
+            for case in ligne:
+                temp+= case.type + ","
+            temp +=']\n'
+            res += temp + ','
 
+        return res+']'
 
 t = Plateau(60)
 t.afficher()
