@@ -8,6 +8,6 @@ a faire
 
 
 Pseudo
-Arthur = Arthur-citizen = argaba80
-Charle = CharlesRobe
+Arthur = Arthur-citizen = argaba80 |
+Charle = CharlesRobe |
 Julien = jwlms03
