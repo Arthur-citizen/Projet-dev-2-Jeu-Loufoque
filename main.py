@@ -95,7 +95,7 @@ class Plateau:
         self.putPosInCase()
         pays=[]
         for letter in range(ord('a'), ord('z') + 1):
-            pays.append(f"trouve un pays commancant par {letter}")
+            pays.append(f"trouve un pays commancant par {chr(letter)}")
         self.defi = ["fait 5 pompes", "dis l'alphabept a l'envers",pays, "compte jusqu'a 100 le plus vite possible" , "tiens en équilibre pendant 10 sec " ]
 
 
