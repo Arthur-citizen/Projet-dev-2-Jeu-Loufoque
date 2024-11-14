@@ -33,18 +33,18 @@ class Phrase:
         self.phrase= ["J'aime les pommes","Je roule en voiture","Je suis dans le bus"]
     def lancer(self):
         phrase= random.choice(self.phrase)
-        print("Votre phrase à écrire a l'envers est ", phrase)
-        phraseSaisi= input("Votre réponse ")
+        print("Essaye donc d'écrire cette phrase dans l'autre sens pour voir : ", phrase)
+        phraseSaisi= input("> ")
         if phraseSaisi == phrase[::-1]:
-            print("bravo")
+            print("Tu as réussi mais il suffisait de lire de droite à gauche, pas de quoi s'ecstasier. :|")
             return True
         else:
-            print(f"pas brave")
+            print(f"Raté alors qu'il te suffisait de lire de droite à gauche...")
             return False
 
 class Combi:
     def __init__(self):
-        self.touches = ['Haut', 'Bas', 'Gauche', 'Droite']
+        self.touches = ['↑ Haut', '↓ Bas', '← Gauche', '→ Droite']
         self.longCombi= 15
 
     def generCombi(self):
@@ -53,20 +53,20 @@ class Combi:
     def lancer(self):
         self.res = self.generCombi()
         self.saisi = []
-        print("La combi a reproduire est ",self.res)
+        print("Essaye de faire cette séquence avec tes flèches directionnelles, pour voir :  ",self.res)
         with keyboard.Listener(on_press=self.onPress) as listener:
             listener.join()
 
     def onPress(self, key):
         try:
             if key == keyboard.Key.up:
-                self.saisi.append('Haut')
+                self.saisi.append('↑ Haut')
             elif key == keyboard.Key.down:
-                self.saisi.append('Bas')
+                self.saisi.append('↓ Bas')
             elif key == keyboard.Key.left:
-                self.saisi.append('Gauche')
+                self.saisi.append('← Gauche')
             elif key == keyboard.Key.right:
-                self.saisi.append('Droite')
+                self.saisi.append('→ Droite')
 
             if len(self.saisi) == len(self.res):
                 self.check()
@@ -77,10 +77,10 @@ class Combi:
 
     def check(self):
         if self.saisi == self.res:
-            print("bravo")
+            print("Tu as réussi mais après t'avais la réponse devant les yeux, aussi...")
 
         else:
-            print("pas bravo")
+            print("Wow, même avec la réponse devant les yeux tu t'es trompé ? La honte... XD")
 
         return False
 
@@ -95,8 +95,8 @@ class Plateau:
         self.putPosInCase()
         pays=[]
         for letter in range(ord('a'), ord('z') + 1):
-            pays.append(f"trouve un pays commancant par {letter}")
-        self.defi = ["fait 5 pompes", "dis l'alphabept a l'envers",pays, "compte jusqu'a 100 le plus vite possible" , "tiens en équilibre pendant 10 sec " ]
+            pays.append(f"Essaye de trouver un pays dont la première lettre est '{chr(letter)}'. :)")
+        self.defi = ["Fais 5 pompes, histoire de te décoller le derrière de ta chaise. :-)", "Voyons comme tu t'en sors pour réciter l'alphabet à l'envers sans faute ! Allez, on t'écoute ! ;D",pays, "Allez, compte jusque 100 le plus vite possible !" , "Allez, bouge un peu et tiens en équilibre sur une jambe pendant dix secondes. Je suis sympa, je te laisse choisir laquelle. ';-)" ]
 
 
         self.jeu = [Phrase(),Combi()]
