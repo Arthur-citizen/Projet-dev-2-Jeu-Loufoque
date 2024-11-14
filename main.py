@@ -99,6 +99,7 @@ class Plateau:
         self.defi = ["Fais 5 pompes, histoire de te décoller le derrière de ta chaise. :-)", "Voyons comme tu t'en sors pour réciter l'alphabet à l'envers sans faute ! Allez, on t'écoute ! ;D",pays, "Allez, compte jusque 100 le plus vite possible !" , "Allez, bouge un peu et tiens en équilibre sur une jambe pendant dix secondes. Je suis sympa, je te laisse choisir laquelle. ';-)" ]
 
 
+
         self.jeu = [Phrase(),Combi()]
     def putPosInCase(self):
         prec=None
