@@ -221,6 +221,12 @@ class Plateau:
             temp +=1
             self.size +=5
     def lancerDe(self):
+        """
+        Cette fonction simule un lancé de dé à 6 côté, ensuite elle met le plateau de jeu à jour en fontion de la case sur où atterit le joueur. 
+        Elle renvoie le résultat du lancé de dé dans  le variable 'num'.
+        :return: 
+        - num : int : entre 1 et 6
+        """
         num= random.randint(1,6)
         self.joueur.pos += (num if (self.joueur.pos + num) < len(self.cases) else len(self.cases)-1-self.joueur.pos)
         self.afficherPlateau()
@@ -267,6 +273,15 @@ class Plateau:
         return min(self.hauteurFenetre // len(self.plat),self.largeurFenetre // len(self.plat[0]))
 
     def afficher(self):
+        """
+        Cette fonction initialise l'affichage du plateau de jeu
+        - crée un canvas pour le plateau de jeu
+        - ajoute le bouton de lancé de dé
+        - affiche le tableau initial
+        - démarre la boucle principal avec mainloop()
+
+        :return: None
+        """
         self.root = tk.Tk()
         self.root.title("Plateau Interface")
 

@@ -4,13 +4,13 @@ import tkinter as tk
 
 def lancer_mini_jeu_mp3(chemin_fichier_mp3, reponse_correcte):
     """
-    Joue un fichier MP3 et demande une réponse à l'utilisateur via une interface tkinter.
+    joue un fichier MP3 et demande une réponse via une interface tkinter.
     
-    Arguments:
+    :param
     - chemin_fichier_mp3 : str : chemin du fichier MP3 à jouer.
     - reponse_correcte : str : réponse attendue pour réussir le mini-jeu.
     
-    Retourne:
+    return:
     - bool : True si la réponse est correcte, False sinon.
     """
     # Utilisation de playsound pour jouer le fichier MP3
@@ -59,7 +59,7 @@ def random_mini_jeu_mp3(chemin_fichier_mp3):
     """
     Lancer le mini-jeu de manière aléatoire et déterminer si le mini-jeu est réussi.
     
-    Retourne:
+    return:
     - bool : True si le mini-jeu est réussi, False sinon.
     """
     # Définir le chemin du fichier MP3 et la réponse correcte
