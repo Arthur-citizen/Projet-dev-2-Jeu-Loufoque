@@ -33,13 +33,13 @@ titre1 = Label(fenetre, text="Ouvrez la porte", width=14, background="black", fo
 
 # Fonction à exécuter lors du clic sur le bouton
 def play():
-    bouton1['text'] = 'ABCDEFGHIJKLM'  # Change le texte du bouton
+    bouton['text'] = 'ABCDEFGHIJKLM'  # Change le texte du bouton
 
 # Création d'un bouton avec l'image "porte_menu.png"
-bouton1 = Button(fenetre, image=porte, bg="black", highlightthickness=0, border=0, activebackground="black")
+bouton = Button(fenetre, image=porte, bg="black", highlightthickness=0, border=0, activebackground="black")
 titre.pack()  # Ajoute le titre à la fenêtre
 titre1.pack()  # Ajoute le sous-titre à la fenêtre
-bouton1.pack()  # Ajoute le bouton à la fenêtre
+bouton.pack()  # Ajoute le bouton à la fenêtre
 
 # Définition des propriétés de la fenêtre principale
 fenetre.title("Jeu de plateau Loufoque")  # Titre de la fenêtre
