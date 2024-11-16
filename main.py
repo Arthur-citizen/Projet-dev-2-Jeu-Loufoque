@@ -1,7 +1,9 @@
 import tkinter as tk
 import random
 from pynput import keyboard
-couleurs = {   #sert pour la couleur des cases
+from PIL import Image, ImageTk
+
+couleurs = {   # Sert pour la couleur des cases
     "VIDE": "white",
     "NEUTRE": "blue",
     "JEU": "orange",
@@ -9,15 +11,14 @@ couleurs = {   #sert pour la couleur des cases
     "DEPART": "green",
     "ARRIVE": "red",
     "JOUEUR": "yellow"
-
 }
 
 class Case:
     def __init__(self, type):
-        self.type = type  # Met le type de cases mini jeu,depart , neutre, ....
-        self.position= None
+        self.type = type  # Type de case : mini-jeu, départ, neutre, etc.
+        self.position = None
 
-    def __str__(self):     # pour afficher en console la case avec print(Case)
+    def __str__(self):  # Pour afficher en console la case avec print(Case)
         return f"{self.type}"
 
 
@@ -28,32 +29,35 @@ class Joueur:
     def deplacer(self):
         pass
 
+
 class Phrase:
     def __init__(self):
-        self.phrase= ["J'aime les pommes","Je roule en voiture","Je suis dans le bus"]
+        self.phrase = ["J'aime les pommes", "Je roule en voiture", "Je suis dans le bus"]
+
     def lancer(self):
-        phrase= random.choice(self.phrase)
+        phrase = random.choice(self.phrase)
         print("Essaye donc d'écrire cette phrase dans l'autre sens pour voir : ", phrase)
-        phraseSaisi= input("> ")
+        phraseSaisi = input("> ")
         if phraseSaisi == phrase[::-1]:
-            print("Tu as réussi mais il suffisait de lire de droite à gauche, pas de quoi s'ecstasier. :|")
+            print("Tu as réussi mais il suffisait de lire de droite à gauche, pas de quoi s'extasier. :|")
             return True
         else:
             print(f"Raté alors qu'il te suffisait de lire de droite à gauche...")
             return False
 
+
 class Combi:
     def __init__(self):
         self.touches = ['↑ Haut', '↓ Bas', '← Gauche', '→ Droite']
-        self.longCombi= 15
+        self.longCombi = 15
 
     def generCombi(self):
-        return random.choices(self.touches, k = self.longCombi)
+        return random.choices(self.touches, k=self.longCombi)
 
     def lancer(self):
         self.res = self.generCombi()
         self.saisi = []
-        print("Essaye de faire cette séquence avec tes flèches directionnelles, pour voir :  ",self.res)
+        print("Essaye de faire cette séquence avec tes flèches directionnelles, pour voir :  ", self.res)
         with keyboard.Listener(on_press=self.onPress) as listener:
             listener.join()
 
@@ -78,11 +82,83 @@ class Combi:
     def check(self):
         if self.saisi == self.res:
             print("Tu as réussi mais après t'avais la réponse devant les yeux, aussi...")
-
         else:
             print("Wow, même avec la réponse devant les yeux tu t'es trompé ? La honte... XD")
-
         return False
+
+
+class Menu:
+    def __init__(self):
+        self.fenetre = tk.Tk()
+        self.fenetre.geometry("540x540")
+        self.fenetre.title("Jeu de plateau Loufoque")
+
+        # Charger le GIF comme fond
+        self.gif = Image.open("image/bg.gif")
+        self.gif_frames = []
+        #stock les images du gif dans une liste "self.gif_frames = []"
+        for i in range(self.gif.n_frames):
+            self.gif.seek(i)
+            frame = ImageTk.PhotoImage(self.gif.copy())
+            self.gif_frames.append(frame)
+        #set la première image du gif
+        self.background_label = tk.Label(self.fenetre, image=self.gif_frames[0])
+        self.background_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+        #anime du GIF
+        self.current_frame = 0
+        self.animate_gif()
+
+        #crée les titres
+        self.titre = tk.Label(
+            self.fenetre, 
+            text="Préparez vous pour un jeu renversant", 
+            background="black", 
+            font=("Arial", 15), 
+            fg="green"
+        )
+        self.titre1 = tk.Label(
+            self.fenetre, 
+            text="Ouvrez la porte", 
+            background="black", 
+            font=("Arial", 15), 
+            fg="green",
+            width=14
+        )
+        #positionner les titres
+        self.titre.place(relx=0.5, rely=0.13, anchor=tk.CENTER) # 13% en hauteur depuis le heut de la fenêtre 
+        self.titre1.place(relx=0.5, rely=0.18, anchor=tk.CENTER) # 18% du haut de la fenêtre
+
+        #bouton pour lancer le jeu
+        self.porte = tk.PhotoImage(file="image/porte_menu.png") #charge la porte
+        self.bouton_start = tk.Button(
+            self.fenetre, 
+            image=self.porte, 
+            command=self.start_game, 
+            bg="black", 
+            highlightthickness=0, 
+            border=0, 
+            activebackground="black"
+        )
+        #place le bouton
+        self.bouton_start.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+    #fais une rotation dans la liste "gif_frames = []" avec 25ms d'interval entre chaque image
+    def animate_gif(self):
+        self.current_frame = (self.current_frame + 1) % len(self.gif_frames)
+        self.background_label.configure(image=self.gif_frames[self.current_frame])
+        self.fenetre.after(25, self.animate_gif)
+
+    def start_game(self):
+        #fermer le menu
+        self.fenetre.destroy()
+
+        #Lance le plateau
+        plateau = Plateau(60)
+        plateau.afficher()
+    #lance la boucle principale
+    def afficher(self):
+        self.fenetre.mainloop()
+
 
 class Plateau:
     def __init__(self, nbCases):
@@ -272,6 +348,7 @@ class Plateau:
 
         return min(self.hauteurFenetre // len(self.plat),self.largeurFenetre // len(self.plat[0]))
 
+
     def afficher(self):
         """
         Cette fonction initialise l'affichage du plateau de jeu
@@ -313,5 +390,8 @@ class Plateau:
 
         return res+']'
 
-t = Plateau(60)
-t.afficher()
+
+# Point d'entrée du programme
+if __name__ == "__main__":
+    menu = Menu()
+    menu.afficher()
