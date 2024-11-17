@@ -33,7 +33,7 @@ sequence = []
 def addUnitToSequence(): # Adds a unit to the sequence
     buttonsList = ['Green', 'Red', 'Yellow', 'Blue']
     sequence.append( random.choice(buttonsList) )
-    print(sequence)
+    print(f"Showing following sequence on GUI: {sequence}")
 
 def showSequenceOnGUI(): # Shows the sequence on the GUI
     for unit in sequence:
@@ -53,7 +53,7 @@ def showSequenceOnGUI(): # Shows the sequence on the GUI
             blueButton.config(bg = 'blue')
             time.sleep(1)
             blueButton.config(bg = 'black')
-    time.sleep(0.2)
+        time.sleep(0.2) # Adds a delay after each unit of the sequence shown on the GUI.
 
 def userInputing(): # Lets the user input.
     inputSequence = []
@@ -72,12 +72,17 @@ def userInputing(): # Lets the user input.
 def main():
     '''Programme principal'''
     run = 0
-    while run < 10:
+    while run < 6:
         addUnitToSequence()
         showSequenceOnGUI()
+        print("Capturing user input on GUI...")
+        print("> ")
+        print("NOTE: The user is supposed to enter a sequence here by pressing the buttons and the program checks if it is correct.")
+        time.sleep(3)
+        print("Submitted answer is correct. Proceeding.\n")
         loremIpsum() # A function must be added here to capture user input then compare it with the actual sequence.
         run += 1
-
+    print("Done.")
 
 # Starts the main program
 thread = threading.Thread(target = main)
