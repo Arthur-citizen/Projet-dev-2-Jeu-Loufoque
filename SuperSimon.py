@@ -3,6 +3,11 @@ import random
 import time
 import threading
 
+def loremIpsum():
+    # This function does nothing and only serves as demonstration purpose in the code → Will be removed from the final product.
+    return 0
+
+
 # Main window creation.
 root = tk.Tk() # Opens a window
 root.title("Super Simon") # Titles the window
@@ -10,10 +15,11 @@ squareImage = tk.PhotoImage(width = 1, height = 1) # This fake square image will
 
 # Buttons
 ## Buttons initialisation
-greenButton = tk.Button(root, bg = 'black', image = squareImage, width = 300, height = 300, command =)
-redButton = tk.Button(root, bg = 'black', image = squareImage, width = 300, height = 300, command =)
-yellowButton = tk.Button(root, bg = 'black', image = squareImage, width = 300, height = 300, command =)
-blueButton = tk.Button(root, bg = 'black', image = squareImage, width = 300, height = 300, command =)
+greenButton = tk.Button(root, bg = 'black', image = squareImage, width = 300, height = 300, command = loremIpsum())
+redButton = tk.Button(root, bg = 'black', image = squareImage, width = 300, height = 300, command = loremIpsum())
+yellowButton = tk.Button(root, bg = 'black', image = squareImage, width = 300, height = 300, command = loremIpsum())
+blueButton = tk.Button(root, bg = 'black', image = squareImage, width = 300, height = 300, command = loremIpsum())
+
 
 ## Position the various buttons in a grid
 greenButton.grid(row = 0, column = 0) # Top left
@@ -47,6 +53,7 @@ def showSequenceOnGUI(): # Shows the sequence on the GUI
             blueButton.config(bg = 'blue')
             time.sleep(1)
             blueButton.config(bg = 'black')
+    time.sleep(0.2)
 
 def userInputing(): # Lets the user input.
     inputSequence = []
@@ -56,8 +63,7 @@ def userInputing(): # Lets the user input.
         else:
             return False
     
-    # Corps
-    # Attente de l'input d'un utilisateur
+    # Function body
     waitForClick = tk.IntVar() # Waits for a user to click a button on the GUI
     
     
@@ -69,6 +75,7 @@ def main():
     while run < 10:
         addUnitToSequence()
         showSequenceOnGUI()
+        loremIpsum() # A function must be added here to capture user input then compare it with the actual sequence.
         run += 1
 
 
