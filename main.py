@@ -2,6 +2,9 @@ import tkinter as tk
 import random
 from pynput import keyboard
 from PIL import Image, ImageTk
+import os
+from playsound import playsound #playsound 1.2.2
+
 
 couleurs = {   # Sert pour la couleur des cases
     "VIDE": "white",
@@ -12,7 +15,11 @@ couleurs = {   # Sert pour la couleur des cases
     "ARRIVE": "red",
     "JOUEUR": "yellow"
 }
-
+#liste musique pour mini-jeu
+wav = ["emotional.wav",
+       "rise.wav",
+       "serenity.wav",
+       "oued.wav"]
 class Case:
     def __init__(self, type):
         self.type = type  # Type de case : mini-jeu, départ, neutre, etc.
@@ -86,6 +93,87 @@ class Combi:
             print("Wow, même avec la réponse devant les yeux tu t'es trompé ? La honte... XD")
         return False
 
+class Wav:
+    def __init__(self, chemin_fichier_wav):
+        if not chemin_fichier_wav:
+            raise ValueError("La liste des fichiers wav est vide.")
+        #self.chemin_fichier_wav = chemin_fichier_wav
+        self.chemin_fichier_wav = chemin_fichier_wav
+        self.chemin_fichier = None
+        self.result_wav = None
+        self.fenetre_wav = None
+        self.bouton_wav = None
+        self.entry_wav = None
+        self.reponse_correcte = None
+        
+    def reponse_random(self):
+        '''
+        - écrit si la réponse est bonne ou pas dans la fenêtre tkinker
+        - rend le boutton innacessible après l'avoir pressé
+        - ferme la fenêtre après 2 sec suivant la pression du boutton
+        PRE: None
+        POST: None
+        '''
+        if self.reponse_correcte:
+            self.result_wav.set("Réponse correcte!")
+            print("Réponse correcte!")
+        else:
+            self.result_wav.set("Réponse incorrecte")
+            print("Réponse incorrecte!")
+        self.bouton_wav.config(state=tk.DISABLED) #désactive le bouton après validation
+        self.fenetre_wav.after(2000, self.fenetre_wav.destroy) #ferme la fenêtre après 2 sec
+        
+    def lancer(self):
+        """
+        - lance le mini-jeu
+        - vérifie si les fichiers .wav existes
+        - joue un fichier .wav choisi au hasard dans la liste wav
+        - crée une fenêtre pour donner la réponse la réussite de ce mini-jeu est défini par une fonction random
+        PRE: None
+        POST: None
+        """
+
+        self.chemin_fichier = random.choice(self.chemin_fichier_wav) #un fichier aléatoire
+        print(self.chemin_fichier)
+        print(self.chemin_fichier_wav)
+        if not os.path.exists(self.chemin_fichier):
+            raise FileNotFoundError(f"Fichier WAV introuvable : {self.chemin_fichier}")
+        
+        self.reponse_correcte = random.choice([True, False])
+        #joue le fichier wav
+        print("Quelle titre te vient en tête ?")
+        try:
+            print(f"Lecture du fichier : HAHA tu pensais avoir la réponse comme ça ??!!!")
+            playsound(self.chemin_fichier)
+        except Exception as e:
+            print(f"Erreur lors de la lecture du fichier wav : {e}")
+            print("Est-ce que la librairie playsound 1.2.2 est bine installé")
+        try:
+            self.fenetre_wav = tk.Tk()            
+            self.fenetre_wav.title("Mini-jeu de musique")
+
+            #explication
+            self.label_wav = tk.Label(self.fenetre_wav, text="Entrez votre réponse:")
+            
+            #champ de saisie
+            self.entry_wav = tk.Entry(self.fenetre_wav)
+            
+            #variable affiche résultat
+            self.result_wav = tk.StringVar(self.fenetre_wav)
+            self.result_wav.set("")
+            self.result_label_wav = tk.Label(self.fenetre_wav, textvariable=self.result_wav)
+            
+            #bouton pour valider
+            self.bouton_wav = tk.Button(self.fenetre_wav, text="Valider", command=self.reponse_random)
+            
+            self.label_wav.pack()
+            self.entry_wav.pack()
+            self.result_label_wav.pack()
+            self.bouton_wav.pack()
+
+            self.fenetre_wav.mainloop()
+        except:
+            print("Erreur pour la création de la fenêtre de réponse")
 
 class Menu:
     def __init__(self):
@@ -144,9 +232,16 @@ class Menu:
         self.bouton_start.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
     #fais une rotation dans la liste "gif_frames = []" avec 25ms d'interval entre chaque image
     def animate_gif(self):
-        self.current_frame = (self.current_frame + 1) % len(self.gif_frames)
-        self.background_label.configure(image=self.gif_frames[self.current_frame])
-        self.fenetre.after(25, self.animate_gif)
+        """
+        - la fonction utiilise le GIF bg.gif, sépare toutes les images composants le GIF dans une liste
+        - fais défiler la liste d'image avec un intervalle de 25 millisecondes entre chaque image 
+        """
+        try:
+            self.current_frame = (self.current_frame + 1) % len(self.gif_frames)
+            self.background_label.configure(image=self.gif_frames[self.current_frame])
+            self.fenetre.after(25, self.animate_gif)
+        except:
+            print("erreur fonction anime_gif")
 
     def start_game(self):
         #fermer le menu
@@ -176,7 +271,7 @@ class Plateau:
 
 
 
-        self.jeu = [Phrase(),Combi()]
+        self.jeu = [Phrase(),Combi(),Wav(wav)]
     def putPosInCase(self):
         prec=None
         act = self.trouveDepart()
@@ -303,33 +398,35 @@ class Plateau:
         :return: 
         - num : int : entre 1 et 6
         """
-        num= random.randint(1,6)
-        self.joueur.pos += (num if (self.joueur.pos + num) < len(self.cases) else len(self.cases)-1-self.joueur.pos)
-        self.afficherPlateau()
-
-        if self.cases[self.joueur.pos].type == "JEU" :
-            self.root.update_idletasks()
-
-            random.choice(self.jeu).lancer()
-
-        elif self.cases[self.joueur.pos].type == "EVENT":
-            self.plat = self.fairePlateau()
-            self.plat = self.clearMat(self.plat)
-            self.putPosInCase()
-            self.tailleCase=self.calculateCaseSize()
+        try:
+            num= random.randint(1,6)
+            self.joueur.pos += (num if (self.joueur.pos + num) < len(self.cases) else len(self.cases)-1-self.joueur.pos)
             self.afficherPlateau()
-        elif self.cases[self.joueur.pos].type == "ARRIVE":
-            print("win gg")
-            self.root.quit()
 
-        else:
-            if random.randint(1,10) >4:
-                t=(random.choice(self.defi))
-                if type(t)== list:
-                    t=random.choice(t)
-                print(t)
+            if self.cases[self.joueur.pos].type == "JEU" :
+                self.root.update_idletasks()
 
-        return num
+                random.choice(self.jeu).lancer()
+
+            elif self.cases[self.joueur.pos].type == "EVENT":
+                self.plat = self.fairePlateau()
+                self.plat = self.clearMat(self.plat)
+                self.putPosInCase()
+                self.tailleCase=self.calculateCaseSize()
+                self.afficherPlateau()
+            elif self.cases[self.joueur.pos].type == "ARRIVE":
+                print("win gg")
+                self.root.quit()
+
+            else:
+                if random.randint(1,10) >4:
+                    t=(random.choice(self.defi))
+                    if type(t)== list:
+                        t=random.choice(t)
+                    print(t)
+            return num
+        except:
+            print("Erreur fonction lancerDe")
 
     def afficherPlateau(self):
         self.canvas.delete('all')

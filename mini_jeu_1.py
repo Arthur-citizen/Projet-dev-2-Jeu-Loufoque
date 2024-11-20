@@ -1,25 +1,46 @@
 import random
 from playsound import playsound
 import tkinter as tk
+import os
 
-def lancer_mini_jeu_mp3(chemin_fichier_mp3, reponse_correcte):
+mp3 = ["emotional.wav",
+       "rise.wav",
+       "serenity.wav",
+       "oued.wav"]
+choix = random.choice(mp3)
+print(choix)
+
+playsound(choix)
+
+
+
+def lancer_mini_jeu_mp3():
     """
-    joue un fichier MP3 et demande une réponse via une interface tkinter.
-    
-    :param
-    - chemin_fichier_mp3 : str : chemin du fichier MP3 à jouer.
-    - reponse_correcte : str : réponse attendue pour réussir le mini-jeu.
-    
-    return:
-    - bool : True si la réponse est correcte, False sinon.
+    #Joue un fichier MP3 et demande une réponse via une interface tkinter.
     """
-    # Utilisation de playsound pour jouer le fichier MP3
-    playsound(chemin_fichier_mp3)
+    # Construction du chemin complet vers le fichier MP3
+    chemin_base = os.path.dirname(__file__)
+    chemin_fichier = os.path.join(chemin_base, random.choice(mp3))
+    
+    # Vérification de l'existence du fichier avant de le jouer
+    if not os.path.exists(chemin_fichier):
+        print(f"Erreur: Le fichier {chemin_fichier} n'existe pas.")
+        return
+    
+    print(f"Lecture du fichier: {chemin_fichier}")
+    try:
+        playsound(chemin_fichier)
+    except Exception as e:
+        print(f"Erreur lors de la lecture du fichier: {e}")
+        return
+
+    # Choisir une réponse correcte aléatoire
+    reponse_correcte = random.choice([True, False])
     
     # Création d'une fenêtre tkinter pour demander la réponse
-    def verifier_reponse():
+    def verifier_reponse(reponse_correcte):
         reponse = entry.get()
-        if random.choice([True, False]):
+        if reponse_correcte:
             result_var.set("Réponse correcte!")
             rep = True
         else:
@@ -27,43 +48,30 @@ def lancer_mini_jeu_mp3(chemin_fichier_mp3, reponse_correcte):
             rep = False
         bouton.config(state=tk.DISABLED)  # Désactiver le bouton une fois la réponse donnée
 
-    # Fenêtre principale
     fenetre = tk.Tk()
     fenetre.title("Mini-jeu de musique")
 
-    # Label avec une explication
+    # Explication
     label = tk.Label(fenetre, text="Entrez votre réponse:")
-    label.pack()
-
-    # Zone de saisie pour la réponse
+    
+    # Champ de saisie
     entry = tk.Entry(fenetre)
-    entry.pack()
-
+    
     # Variable pour afficher le résultat
     result_var = tk.StringVar(fenetre)
     result_var.set("")  # Initialisation de la variable
     result_label = tk.Label(fenetre, textvariable=result_var)
-    result_label.pack()
-
+    
     # Bouton pour valider la réponse
-    bouton = tk.Button(fenetre, text="Valider", command=verifier_reponse)
+    bouton = tk.Button(fenetre, text="Valider", command=lambda: verifier_reponse(reponse_correcte))
+    
+    # Positionner les éléments dans la fenêtre
+    label.pack()
+    entry.pack()
+    result_label.pack()
     bouton.pack()
 
-    # Lancement de la fenêtre tkinter
     fenetre.mainloop()
 
-    # Retourner si la réponse était correcte ou non
-    return result_var.get() == "Réponse correcte!"
-
-def random_mini_jeu_mp3(chemin_fichier_mp3):
-    """
-    Lancer le mini-jeu de manière aléatoire et déterminer si le mini-jeu est réussi.
-    
-    return:
-    - bool : True si le mini-jeu est réussi, False sinon.
-    """
-    # Définir le chemin du fichier MP3 et la réponse correcte
-    reponse_correcte = random.choice([True, False])
-    
-    # Lancer le mini-jeu et vérifier si la réponse est correcte
-    return lancer_mini_jeu_mp3(chemin_fichier_mp3, reponse_correcte)
+# Lancer le mini-jeu
+lancer_mini_jeu_mp3()

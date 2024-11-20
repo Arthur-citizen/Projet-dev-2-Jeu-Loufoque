@@ -1,6 +1,6 @@
 import tkinter as tk
 import random
-from mini_jeu_1 import random_mini_jeu_mp3
+from mini_jeu_1 import lancer_mini_jeu_mp3
 
 couleurs = {
     "VIDE": "white",
@@ -40,7 +40,7 @@ class Joueur:
             #vérifie si le joueur atterrit sur une case "JEU"
             if plateau.cases[self.pos].type == "JEU":
                 print("Vous êtes sur une case de mini-jeu!")
-                if random_mini_jeu_mp3(random.choice(mp3)):
+                if lancer_mini_jeu_mp3(random.choice(mp3)):
                     print("Mini-jeu réussi !")
                 else:
                     print("Mini-jeu échoué.")
@@ -166,4 +166,4 @@ class Plateau:
 
 t = Plateau(30)
 t.afficher()
-random_mini_jeu_mp3(random.choice(mp3))
+lancer_mini_jeu_mp3(random.choice(mp3))
