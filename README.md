@@ -1,6 +1,18 @@
 repo du projet dev 2
 Pour lancer main il faut
-tkinter, random, pynput import keyboard, PIL import Image, ImageTk, os, import playsound la version 
+
+
+tkinter, 
+
+random, 
+
+pynput import keyboard, 
+
+PIL import Image, 
+
+ImageTk, os, 
+
+import playsound la version 
 
 
 
