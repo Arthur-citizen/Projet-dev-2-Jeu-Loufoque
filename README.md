@@ -1,11 +1,6 @@
 repo du projet dev 2
 Pour lancer main il faut
-import tkinter as tk
-import random
-from pynput import keyboard
-from PIL import Image, ImageTk
-import os
-from playsound import playsound #playsound 1.2.2
+tkinter, random, pynput import keyboard, PIL import Image, ImageTk, os, import playsound la version 
 
 
 
