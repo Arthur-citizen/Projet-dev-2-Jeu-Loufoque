@@ -273,6 +273,14 @@ class Plateau:
 
         self.jeu = [Phrase(),Combi(),Wav(wav)]
     def putPosInCase(self):
+        """
+        La méthode va corriger ,en attribut , la posistion de chaque dans la liste de Case
+
+        PRE : -La méthode trouverDepart
+              -L'attribut Cases doit être non vide et correct
+              -L'attribut Plat doit etre correct (car utilisé dans trouver depart)
+        POST : Corrige la postiotion de chaque case dans Cases
+        """
         prec=None
         act = self.trouveDepart()
         self.cases[0].position = act
@@ -289,10 +297,10 @@ class Plateau:
 
     def createCases(self, nbCase):
         """
-        On fait en sorte d'avoir un certain nbCase de différent type choisis aléatoirement on commence toujours avec une case
+        On fait en sorte d'avoir un certain nbCase de différent type choisis aléatoirement, on commence toujours avec une case
         départ et fini par une case arrivé
-        :param nbCase:
-        :return: List(Case)
+        PRE : nbCase : int >= 0
+        POST : return cases : qui cointient une case depart, un nbCase -2 de different type de case et une case arrivé
         """
         cases = [Case("DEPART")]
         eventProb = 0.025
@@ -321,11 +329,10 @@ class Plateau:
 
     def clearMat(self, plat):
         """
-        Comme le plateau est généré aléatoirement il se peu, par exemple, que le plateau soit coller a gauche de la fenetre
-        cette fonction sert a enlever toute les lignes/colones inutile pour que la taille du rectangle/carré afficher soit le plus petit necessaire
+        Cette méthode sert a enlever toute les lignes/colones inutile pour que la taille du rectangle affiché soit le plus petit possible
 
-        :param plat:
-        :return:
+        PRE : plat : List[list[Case]]
+        POST : plat : List[list[Case]]
         """
 
         for i in range(len(plat) - 1, -1, -1):    # clear lignes de case vide
@@ -350,7 +357,11 @@ class Plateau:
         """
         On essaye de faire placer toute les cases de self.cases l'une a la suite de l'autre de facon aléatoire, une case peut
         toucher une seul autre case et elle doivent rester dans un carré de taille self.size
-        :return:
+        PRE : - self.size doit être initialisé correctement (int >=0)
+              - self.cases doit être initialisé correctement (list(Case))
+
+        POST : -return plat : une matrice de Case
+               - En cas d'erreur, si aucun placement n'est possible car un nombre trop élévé de case, un erreur est déclanché
         """
         temp = 0 # mettre un .time() pour avoir 220 sec de charge ou moins, on essaye {tentative} fois avec une taille de plateau et apres on augmente la taille
 
@@ -429,6 +440,16 @@ class Plateau:
             print("Erreur fonction lancerDe")
 
     def afficherPlateau(self):
+        """
+        Cette méthode affiche avec un interface graphique le plateau de jeu et le joueur
+
+        PRE :  Les différentes attribut du plateau doivent être initialisé correctement : self.plat, self.cases, self.joueur.
+               Et la variable global couleur doit être un dictionnaire qui contient les couleurs valide pour chaque type de case.
+
+        POST : Le plateau est afficher sur le canevas
+
+        """
+
         self.canvas.delete('all')
         for i in range(len(self.plat)):
             for j in range(len(self.plat[i])):
