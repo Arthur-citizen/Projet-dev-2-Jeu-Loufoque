@@ -93,7 +93,7 @@ class Combi:
             print("Wow, même avec la réponse devant les yeux tu t'es trompé ? La honte... XD")
         return False
 
-class Wav:
+class Mini_jeu_musical:
     def __init__(self, chemin_fichier_wav):
         if not chemin_fichier_wav:
             raise ValueError("La liste des fichiers wav est vide.")
@@ -271,7 +271,7 @@ class Plateau:
 
 
 
-        self.jeu = [Phrase(),Combi(),Wav(wav)]
+        self.jeu = [Phrase(),Combi(),Mini_jeu_musical(wav)]
     def putPosInCase(self):
         """
         La méthode va corriger ,en attribut , la posistion de chaque dans la liste de Case
