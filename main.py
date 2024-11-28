@@ -6,21 +6,14 @@ import os
 from playsound import playsound #playsound 1.2.2
 
 
-couleurs = {   # Sert pour la couleur des cases
-    "VIDE": "white",
-    "NEUTRE": "blue",
-    "JEU": "orange",
-    "EVENT": "purple",
-    "DEPART": "green",
-    "ARRIVE": "red",
-    "JOUEUR": "yellow"
-}
+
 #liste musique pour mini-jeu
 wav = ["emotional.wav",
        "rise.wav",
        "serenity.wav",
        "oued.wav"]
 class Case:
+
     def __init__(self, type):
         self.type = type  # Type de case : mini-jeu, départ, neutre, etc.
         self.position = None
@@ -257,13 +250,23 @@ class Menu:
 
 class Plateau:
     def __init__(self, nbCases):
+        self.__couleurs = {   # Sert pour la couleur des cases
+                            "VIDE": "white",
+                            "NEUTRE": "blue",
+                            "JEU": "orange",
+                            "EVENT": "purple",
+                            "DEPART": "green",
+                            "ARRIVE": "red",
+                            "JOUEUR": "yellow"
+                        }
         self.size = 50    # dimension du carré dans lequel on va essayer de placer les cases
-        self.cases = self.createCases(nbCases)   # On créé un certain nombre (nbcases) de Case
+        self.nbCases = nbCases
+        self.create_cases()   # On créé un certain nombre (nbcases) de Case
         self.largeurFenetre,self.hauteurFenetre = 800,600
-        self.plat = self.fairePlateau()
-        self.plat = self.clearMat(self.plat)
+        self.fairePlateau()
+        self.clear_matrice()
         self.joueur = Joueur(0)
-        self.putPosInCase()
+        self.update_pos_in_case()
         pays=[]
         for letter in range(ord('a'), ord('z') + 1):
             pays.append(f"Essaye de trouver un pays dont la première lettre est '{chr(letter)}'. :)")
@@ -272,45 +275,48 @@ class Plateau:
 
 
         self.jeu = [Phrase(),Combi(),Mini_jeu_musical(wav)]
-    def putPosInCase(self):
+    @property
+    def couleurs(self):
+        return self.__couleurs
+    def update_pos_in_case(self):
         """
-        La méthode va corriger ,en attribut , la posistion de chaque dans la liste de Case
+        La méthode va mettre a jour la position de chaque case
 
-        PRE : -La méthode trouverDepart
-              -L'attribut Cases doit être non vide et correct
-              -L'attribut Plat doit etre correct (car utilisé dans trouver depart)
-        POST : Corrige la postiotion de chaque case dans Cases
+        PRE : -L'attribut Cases doit être non vide et être une liste d'objet Case
+              -L'attribut Plateau doit être une liste de liste d'objet Case
+        POST : Met a jour la postition de chaque case dans l'attribut Cases
         """
-        prec=None
+        previous=None
         act = self.trouveDepart()
         self.cases[0].position = act
         for i in range(1,len(self.cases)):
 
             voisins = [(act[0] + 1, act[1]), (act[0] - 1, act[1]), (act[0], act[1] + 1), (act[0], act[1] - 1)]
             for v in voisins:
-                if 0 <= v[0] < len(self.plat) and 0 <= v[1] < len(self.plat[0]) and self.plat[v[0]][v[1]].type != "VIDE" and v != prec:
+                if 0 <= v[0] < len(self.plateau) and 0 <= v[1] < len(self.plateau[0]) and self.plateau[v[0]][v[1]].type != "VIDE" and v != previous:
                     self.cases[i].position = v
-                    prec=act
+                    previous=act
                     act=v
                     break
 
 
-    def createCases(self, nbCase):
+    def create_cases(self):
         """
-        On fait en sorte d'avoir un certain nbCase de différent type choisis aléatoirement, on commence toujours avec une case
+        On fait en sorte d'avoir un certain nbCase de différent avec un type choisis aléatoirement, on commence toujours avec une case
         départ et fini par une case arrivé
+
         PRE : nbCase : int >= 0
-        POST : return cases : qui cointient une case depart, un nbCase -2 de different type de case et une case arrivé
+        POST : - Creer l'attribut cases qui contient une liste d'object Case
         """
-        cases = [Case("DEPART")]
+        self.cases = [Case("DEPART")]
         eventProb = 0.025
         miniProb = 0.05
         possiblilite = ["NEUTRE", "JEU", "EVENT"]
         probabilites = [1 - miniProb - eventProb, miniProb, eventProb]  #probabilité associé au différente possibilié, il faudrait en faire un dictionnaire
 
-        for i in range(nbCase):
+        for i in range(self.nbCases+2):
             type = random.choices(possiblilite, weights=probabilites, k=1)[0]  # choisis un type de cases alléatoirement en fonction des probabilité
-            cases.append(Case(type))
+            self.cases.append(Case(type))
             if type == "JEU":
                 probabilites[0], probabilites[1], probabilites[2] = 1 - miniProb - (                # Ca caluc les prob, si un type est choisis ça met ses prob
                             probabilites[2] + eventProb), miniProb, probabilites[2] + eventProb            #par default sinon àa rajoute ses prob par defaut a sa prob actuel
@@ -323,45 +329,43 @@ class Plateau:
                 probabilites[2] += eventProb
 
 
+        self.cases.append(Case("ARRIVE"))
 
-        cases.append(Case("ARRIVE"))
-        return cases
-
-    def clearMat(self, plat):
+    def clear_matrice(self):
         """
         Cette méthode sert a enlever toute les lignes/colones inutile pour que la taille du rectangle affiché soit le plus petit possible
 
-        PRE : plat : List[list[Case]]
-        POST : plat : List[list[Case]]
+        PRE : plat doit être une liste de liste de Case
+        POST : Enleve les lignes et colones qui ne contiennent uniquement des cases de type vide.
         """
 
-        for i in range(len(plat) - 1, -1, -1):    # clear lignes de case vide
-            if all(cell.type == "VIDE" for cell in plat[i]):
-                plat.pop(i)
-        for i in range(len(plat[0]) - 1, -1, -1):         # clear colone de case vide
+        for i in range(len(self.plateau) - 1, -1, -1):    # clear lignes de case vide
+            if all(cell.type == "VIDE" for cell in self.plateau[i]):
+                self.plateau.pop(i)
+        for i in range(len(self.plateau[0]) - 1, -1, -1):         # clear colone de case vide
             temp = []
-            for j in plat:
+            for j in self.plateau:
                 temp.append(j[i])
             if all(cell.type == "VIDE" for cell in temp):
-                for j in plat:
+                for j in self.plateau:
                     j.pop(i)
-        return plat
+
 
 
     def trouveDepart(self):
-        for i in range(len(self.plat)):
-            for j in range(len(self.plat[i])):
-                if self.plat[i][j].type == "DEPART":
+        for i in range(len(self.plateau)):
+            for j in range(len(self.plateau[i])):
+                if self.plateau[i][j].type == "DEPART":
                     return (i,j)
     def fairePlateau(self):
         """
         On essaye de faire placer toute les cases de self.cases l'une a la suite de l'autre de facon aléatoire, une case peut
         toucher une seul autre case et elle doivent rester dans un carré de taille self.size
-        PRE : - self.size doit être initialisé correctement (int >=0)
-              - self.cases doit être initialisé correctement (list(Case))
+        PRE : - self.size doit être un int >=0
+              - self.cases doit être une liste d'objet Case non vide
 
-        POST : -return plat : une matrice de Case
-               - En cas d'erreur, si aucun placement n'est possible car un nombre trop élévé de case, un erreur est déclanché
+        POST : Place dans self.plateau une liste de liste d'Objet case formant un chemin de forme aléatoire
+        RAISE : Si aucun placement n'est possible car un nombre trop élévé de case à placé, un erreur est déclanché
         """
         temp = 0 # mettre un .time() pour avoir 220 sec de charge ou moins, on essaye {tentative} fois avec une taille de plateau et apres on augmente la taille
 
@@ -386,19 +390,20 @@ class Plateau:
                                            (tryy[0], tryy[1] - 1)]  # voisin de la case a essayer
                                 ok = True   # est ce que tout les voisins sont vides ? (sauf celle de la case précédente car il doit y avoir un poitn d'accrochen entre 2 cases
                                 for v in voisins:
-                                    if not (plat[v[0]][v[1]] == cas or plat[v[0]][v[1]].type == "VIDE"): # si un des voisins n'est pas vide
-                                        ok = False
-                                        break
+                                    if 0 <= v[0] < len(plat) and 0 <= v[1] < len(plat[0]):
+                                        if not (plat[v[0]][v[1]] == cas or plat[v[0]][v[1]].type == "VIDE"): # si un des voisins n'est pas vide
+                                            ok = False
+                                            break
 
                                 if ok:
                                     pos = tryy
                                     ban.add(pos)
                                     find = True
                         if not find:
-                            raise Exception("Pas de place")
-
-                    return (plat)
-                except:
+                            raise PlacementError("Pas de place")
+                    self.plateau = plat
+                    return
+                except PlacementError:
                     tentative += 1
             temp +=1
             self.size +=5
@@ -409,7 +414,8 @@ class Plateau:
         :return: 
         - num : int : entre 1 et 6
         """
-        try:
+        #try:
+        if(1):
             num= random.randint(1,6)
             self.joueur.pos += (num if (self.joueur.pos + num) < len(self.cases) else len(self.cases)-1-self.joueur.pos)
             self.afficherPlateau()
@@ -420,9 +426,9 @@ class Plateau:
                 random.choice(self.jeu).lancer()
 
             elif self.cases[self.joueur.pos].type == "EVENT":
-                self.plat = self.fairePlateau()
-                self.plat = self.clearMat(self.plat)
-                self.putPosInCase()
+                self.fairePlateau()
+                self.clear_matrice()
+                self.update_pos_in_case()
                 self.tailleCase=self.calculateCaseSize()
                 self.afficherPlateau()
             elif self.cases[self.joueur.pos].type == "ARRIVE":
@@ -436,35 +442,36 @@ class Plateau:
                         t=random.choice(t)
                     print(t)
             return num
-        except:
-            print("Erreur fonction lancerDe")
+        #except:
+            #print("Erreur fonction lancerDe")
 
     def afficherPlateau(self):
         """
         Cette méthode affiche avec un interface graphique le plateau de jeu et le joueur
 
-        PRE :  Les différentes attribut du plateau doivent être initialisé correctement : self.plat, self.cases, self.joueur.
-               Et la variable global couleur doit être un dictionnaire qui contient les couleurs valide pour chaque type de case.
+        PRE :  -self.plateau doit être une liste de liste d'objet Case
+               -self.cases doit être une liste d'objet Case
+               -self.joueur doit être un Objet Joueur
 
         POST : Le plateau est afficher sur le canevas
 
         """
 
         self.canvas.delete('all')
-        for i in range(len(self.plat)):
-            for j in range(len(self.plat[i])):
-                couleur = couleurs[self.plat[i][j].type]
+        for i in range(len(self.plateau)):
+            for j in range(len(self.plateau[i])):
+                couleur = self.__couleurs[self.plateau[i][j].type]
                 x0, y0 = j * self.tailleCase, i * self.tailleCase  # coins haut gauche
                 x1, y1 = x0 + self.tailleCase, y0 + self.tailleCase # coins bat droite
                 self.canvas.create_rectangle(x0, y0, x1, y1, fill=couleur, outline=("black" if couleur != "white" else ""))
 
         joueurY = self.cases[self.joueur.pos].position[0] * self.tailleCase + self.tailleCase // 2
         joueurX = self.cases[self.joueur.pos].position[1] * self.tailleCase + self.tailleCase // 2
-        self.canvas.create_oval(joueurX - self.tailleCase // 4, joueurY - self.tailleCase // 4, joueurX + self.tailleCase // 4, joueurY + self.tailleCase // 4, fill=couleurs["JOUEUR"])
+        self.canvas.create_oval(joueurX - self.tailleCase // 4, joueurY - self.tailleCase // 4, joueurX + self.tailleCase // 4, joueurY + self.tailleCase // 4, fill=self.__couleurs["JOUEUR"])
 
     def calculateCaseSize(self):
 
-        return min(self.hauteurFenetre // len(self.plat),self.largeurFenetre // len(self.plat[0]))
+        return min(self.hauteurFenetre // len(self.plateau),self.largeurFenetre // len(self.plateau[0]))
 
 
     def afficher(self):
@@ -499,7 +506,7 @@ class Plateau:
         :return:
         """
         res='['
-        for ligne in self.plat:
+        for ligne in self.plateau:
             temp='['
             for case in ligne:
                 temp+= case.type + ","
@@ -507,7 +514,8 @@ class Plateau:
             res += temp + ','
 
         return res+']'
-
+class PlacementError(Exception):
+    pass
 
 # Point d'entrée du programme
 if __name__ == "__main__":
