@@ -275,7 +275,7 @@ class Plateau:
         self.size = 50    # dimension du carré dans lequel on va essayer de placer les cases
         self.nbCases = nbCases
         self.create_cases()   # On créé un certain nombre (nbcases) de Case
-        self.largeurFenetre,self.hauteurFenetre = 800,600
+        self.largeur_Fenetre,self.hauteur_Fenetre = 800,600
         self.fairePlateau()
         self.clear_matrice()
         self.joueur = Joueur(0)
@@ -424,39 +424,40 @@ class Plateau:
         """
         Cette fonction simule un lancé de dé à 6 côté, ensuite elle met le plateau de jeu à jour en fontion de la case sur où atterit le joueur. 
         Elle renvoie le résultat du lancé de dé dans  le variable 'num'.
-        :return: 
-        - num : int : entre 1 et 6
+        PRE:
+            - joueur.pos doit être un int
+        POST:
+            - le joueur avance de 1 à 6 cases
+            - en fonction du type de case sur où le joueur fini un jeu, mini-jeu, rien ou la fin du jeu
+            - 60% de chance d'avoir un défi si le joueur tombe sur une case défi
+            
+            
         """
-        #try:
-        if(1):
-            num= random.randint(1,6)
-            self.joueur.pos += (num if (self.joueur.pos + num) < len(self.cases) else len(self.cases)-1-self.joueur.pos)
+        num = random.randint(1,6)
+        self.joueur.pos += (num if (self.joueur.pos + num) < len(self.cases) else len(self.cases)-1-self.joueur.pos)
+        self.afficherPlateau()
+
+        if self.cases[self.joueur.pos].type == "JEU" :
+            self.root.update_idletasks()
+
+            random.choice(self.jeu).lancer()
+
+        elif self.cases[self.joueur.pos].type == "EVENT":
+            self.fairePlateau()
+            self.clear_matrice()
+            self.update_pos_in_case()
+            self.tailleCase=self.calculateCaseSize()
             self.afficherPlateau()
+        elif self.cases[self.joueur.pos].type == "ARRIVE":
+            print("win gg")
+            self.root.quit()
 
-            if self.cases[self.joueur.pos].type == "JEU" :
-                self.root.update_idletasks()
-
-                random.choice(self.jeu).lancer()
-
-            elif self.cases[self.joueur.pos].type == "EVENT":
-                self.fairePlateau()
-                self.clear_matrice()
-                self.update_pos_in_case()
-                self.tailleCase=self.calculateCaseSize()
-                self.afficherPlateau()
-            elif self.cases[self.joueur.pos].type == "ARRIVE":
-                print("win gg")
-                self.root.quit()
-
-            else:
-                if random.randint(1,10) >4:
-                    t=(random.choice(self.defi))
-                    if type(t)== list:
-                        t=random.choice(t)
-                    print(t)
-            return num
-        #except:
-            #print("Erreur fonction lancerDe")
+        else:
+            if random.randint(1,10) > 4:
+                t=(random.choice(self.defi))
+                if type(t)== list:
+                    t=random.choice(t)
+                print(t)
 
     def afficherPlateau(self):
         """
@@ -484,18 +485,21 @@ class Plateau:
 
     def calculateCaseSize(self):
 
-        return min(self.hauteurFenetre // len(self.plateau),self.largeurFenetre // len(self.plateau[0]))
+        return min(self.hauteur_Fenetre // len(self.plateau),self.largeur_Fenetre // len(self.plateau[0]))
 
 
     def afficher(self):
         """
         Cette fonction initialise l'affichage du plateau de jeu
-        - crée un canvas pour le plateau de jeu
-        - ajoute le bouton de lancé de dé
-        - affiche le tableau initial
-        - démarre la boucle principal avec mainloop()
 
-        :return: None
+
+        PRE:
+            - largeur_Fenetre et hauteur_fenetre doivent être un int  
+        POST:
+            - crée un canvas pour le plateau de jeu
+            - ajoute le bouton de lancé de dé
+            - affiche le tableau initial
+            - démarre la boucle principal avec mainloop()
         """
         self.root = tk.Tk()
         self.root.title("Plateau Interface")
@@ -504,11 +508,11 @@ class Plateau:
         self.tailleCase = self.calculateCaseSize()
 
 
-        self.canvas = tk.Canvas(self.root, width=self.largeurFenetre, height=self.hauteurFenetre)
+        self.canvas = tk.Canvas(self.root, width=self.largeur_Fenetre, height=self.hauteur_Fenetre)
         self.canvas.pack()
 
-        boutonDe = tk.Button(self.root, text="Lancer le dé", command=self.lancerDe)
-        boutonDe.pack()
+        bouton_De = tk.Button(self.root, text="Lancer le dé", command=self.lancerDe)
+        bouton_De.pack()
         self.afficherPlateau()
 
         self.root.mainloop()
