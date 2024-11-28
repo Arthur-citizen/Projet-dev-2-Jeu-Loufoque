@@ -111,8 +111,12 @@ class Mini_jeu_musical:
         - écrit si la réponse est bonne ou pas dans la fenêtre tkinker
         - rend le boutton innacessible après l'avoir pressé
         - ferme la fenêtre après 2 sec suivant la pression du boutton
-        PRE: None
-        POST: None
+        PRE: 
+            - La méthode est appelée dans un contexte où `self.reponse_correcte` est défini comme un booléen.
+        POST: 
+            - Le texte affiché dans `self.result_wav` reflète l'état de `self.reponse_correcte`.
+            - Le bouton est désactivé.
+            - La fenêtre est détruite après 2 secondes.
         '''
         if self.reponse_correcte:
             self.result_wav.set("Réponse correcte!")
@@ -129,8 +133,12 @@ class Mini_jeu_musical:
         - vérifie si les fichiers .wav existes
         - joue un fichier .wav choisi au hasard dans la liste wav
         - crée une fenêtre pour donner la réponse la réussite de ce mini-jeu est défini par une fonction random
-        PRE: None
-        POST: None
+        PRE:  
+            - la bibliothèque playsound est installée
+        POST:
+            - raise : FileNotFoundError: pas trouvé les fichier .wav
+            - Exception : erreur de lecture de fichier .wav
+            - except : erreur lors de la création de la fenêtre de réponse
         """
 
         self.chemin_fichier = random.choice(self.chemin_fichier_wav) #un fichier aléatoire
@@ -235,6 +243,11 @@ class Menu:
         """
         - la fonction utiilise le GIF bg.gif, sépare toutes les images composants le GIF dans une liste
         - fais défiler la liste d'image avec un intervalle de 25 millisecondes entre chaque image 
+        PRE: 
+            - l'initialisation de la liste self.gif_frames c'est passé correctement
+            - self.current_frame à bien été initialisé dans le init
+        POST: 
+            - except: erreur dans l'éxécution de la fonction animate_gif
         """
         try:
             self.current_frame = (self.current_frame + 1) % len(self.gif_frames)
