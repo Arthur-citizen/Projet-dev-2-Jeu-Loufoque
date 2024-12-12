@@ -1,7 +1,6 @@
 import random
 import os
 
-
 from pynput import keyboard
 import tkinter as tk
 from playsound import playsound  # playsound 1.2.2
@@ -86,6 +85,203 @@ class Combinaison:
         else:
             print("Wow, même avec la réponse devant les yeux tu t'es trompé ? La honte... XD")
         return False
+
+
+class LogicPlateau:
+    def __init__(self, nombre_cases):
+        self.taille_case = None
+        self.plateau = None
+        self.cases = None
+        self.__couleurs = {
+            "VIDE": "white",
+            "NEUTRE": "blue",
+            "JEU": "orange",
+            "EVENT": "purple",
+            "DEPART": "green",
+            "ARRIVE": "red",
+            "JOUEUR": "yellow"
+        }
+        self.__wav = ["/assets/musiques/emotional.wav",
+                      "/assets/musiques/rise.wav",
+                      "/assets/musiques/serenity.wav",
+                      "/assets/musiques/oued.wav"]
+        self.size = 50
+        self.nombre_cases = nombre_cases
+        self.create_cases()
+        self.faire_plateau()
+        self.clear_matrice()
+        self.joueur = Joueur(0)
+        self.update_pos_in_case()
+        pays = []
+
+        for letter in range(ord('a'), ord('z') + 1):
+            pays.append(f"Essaye de trouver un pays dont la première lettre est '{chr(letter)}'. :)")
+        self.defi = ["Fais 5 pompes, histoire de te décoller le derrière de ta chaise. :-)",
+                     "Voyons comme tu t'en sors pour réciter l'alphabet à l'envers sans faute ! Allez,on t'écoute ! ;D",
+                     pays, "Allez, compte jusque 100 le plus vite possible !",
+                     "Allez, bouge un peu et tiens en équilibre sur une jambe pendant dix secondes. Je suis sympa, je "
+                     "te laisse choisir laquelle. ';-)"]
+
+        self.jeu = [Phrase(), Combinaison(), MiniJeuMusical(self.__wav)]
+
+    @property
+    def couleurs(self):
+        return self.__couleurs
+
+    def update_pos_in_case(self):
+        """
+        La méthode va mettre a jour la position de chaque case
+
+        PRE : -L'attribut Cases doit être non vide et être une liste d'objet Case
+              -L'attribut Plateau doit être une liste de liste d'objet Case
+        POST : Met a jour la postition de chaque case dans l'attribut Cases
+        """
+        case_precedente = None
+        case_actuelle = self.trouve_depart()
+        self.cases[0].position = case_actuelle
+        for i in range(1, len(self.cases)):
+            voisins = [
+                (case_actuelle[0] + 1, case_actuelle[1]),
+                (case_actuelle[0] - 1, case_actuelle[1]),
+                (case_actuelle[0], case_actuelle[1] + 1),
+                (case_actuelle[0], case_actuelle[1] - 1)
+            ]
+            for v in voisins:
+                if 0 <= v[0] < len(self.plateau) and 0 <= v[1] < len(self.plateau[0]):
+                    if self.plateau[v[0]][v[1]].type != "VIDE" and v != case_precedente:
+                        self.cases[i].position = v
+                        case_precedente = case_actuelle
+                        case_actuelle = v
+                        break
+
+    def create_cases(self):
+        """
+        On fait en sorte d'avoir un certain nbCase de différent avec un type_case choisis aléatoirement, on commence
+        toujours avec une case
+        départ et fini par une case arrivé
+
+        PRE : nbCase : int >= 0
+        POST : - Creer l'attribut cases qui contient une liste d'object Case
+        """
+        self.cases = [Case("DEPART")]
+        event_probabilite = 0.025
+        mini_jeu_probabilite = 0.05
+        possibilites = ["NEUTRE", "JEU", "EVENT"]
+        probabilites = [1 - mini_jeu_probabilite - event_probabilite, mini_jeu_probabilite, event_probabilite]
+
+        for i in range(self.nombre_cases + 2):
+            type_case = random.choices(possibilites, weights=probabilites, k=1)[0]
+            self.cases.append(Case(type_case))
+
+            if type_case == "JEU":
+                probabilites[1] = mini_jeu_probabilite
+                probabilites[2] += event_probabilite
+
+            elif type_case == "EVENT":
+                probabilites[1] += mini_jeu_probabilite
+                probabilites[2] = event_probabilite
+            else:
+                probabilites[1] += mini_jeu_probabilite
+                probabilites[2] += event_probabilite
+
+            probabilites[0] = 1 - probabilites[1] - probabilites[2]
+
+        self.cases.append(Case("ARRIVE"))
+
+    def clear_matrice(self):
+        """
+        Cette méthode sert a enlever toute les lignes/colones inutile pour que la taille du rectangle affiché soit le
+         plus petit possible
+
+        PRE : plat doit être une liste de liste de Case
+        POST : Enleve les lignes et colones qui ne contiennent uniquement des cases de type vide.
+        """
+        return
+        for i in range(len(self.plateau) - 1, -1, -1):
+            if all(cell.type == "VIDE" for cell in self.plateau[i]):
+                self.plateau.pop(i)
+        for i in range(len(self.plateau[0]) - 1, -1, -1):
+            temp = [self.plateau[j][i] for j in range(len(self.plateau))]
+            if all(cell.type == "VIDE" for cell in temp):
+                for j in range(len(self.plateau)):
+                    self.plateau[j].pop(i)
+
+    def trouve_depart(self):
+        for i in range(len(self.plateau)):
+            for j in range(len(self.plateau[i])):
+                if self.plateau[i][j].type == "DEPART":
+                    return i, j
+
+    def faire_plateau(self):
+        """
+        On essaye de faire placer toute les cases de self.cases l'une a la suite de l'autre de facon aléatoire, une
+        case peut
+        toucher une seul autre case et elle doivent rester dans un carré de taille self.size
+        PRE : - self.size doit être un int >=0
+              - self.cases doit être une liste d'objet Case non vide
+
+        POST : Place dans self.plateau une liste de liste d'Objet case formant un chemin de forme aléatoire
+        RAISE : Si aucun placement n'est possible car un nombre trop élévé de case à placé, un erreur est déclanché
+        """
+        tentative = 0
+        while tentative < 100:
+            position = (random.randint(0, self.size - 1), random.randint(0, self.size - 1))
+            plateau = [[Case("VIDE") for _ in range(self.size)] for _ in range(self.size)]
+            positions_occupees = {position}
+            for case in self.cases:
+                plateau[position[0]][position[1]] = case
+
+                position_suivante = [
+                    (position[0] + 1, position[1]),
+                    (position[0] - 1, position[1]),
+                    (position[0], position[1] + 1),
+                    (position[0], position[1] - 1)
+                ]
+                random.shuffle(position_suivante)
+                trouve = False
+                while not trouve and len(position_suivante):
+                    position_en_test = position_suivante.pop()
+                    if (
+                            position_en_test not in positions_occupees and (
+                            0 <= position_en_test[0] < len(plateau)) and (
+                            0 <= position_en_test[1] < len(plateau[0]))
+                    ):
+                        voisins = [
+                            (position_en_test[0] + 1, position_en_test[1]),
+                            (position_en_test[0] - 1, position_en_test[1]),
+                            (position_en_test[0], position_en_test[1] + 1),
+                            (position_en_test[0], position_en_test[1] - 1)
+                        ]
+                        ok = True
+                        for v in voisins:
+                            if 0 <= v[0] < len(plateau) and 0 <= v[1] < len(plateau[0]):
+                                if not (plateau[v[0]][v[1]] == case or plateau[v[0]][v[1]].type == "VIDE"):
+                                    ok = False
+                                    break
+                        if ok:
+                            position = position_en_test
+                            positions_occupees.add(position)
+                            trouve = True
+                if not trouve:
+                    tentative += 1
+            self.plateau = plateau
+            return
+
+    def lancer_de(self):
+        """
+        Cette fonction simule un lancé de dé à 6 côté, ensuite elle met le plateau de jeu à jour en fontion de la case
+         sur où atterit le joueur.
+        Elle renvoie le résultat du lancé de dé dans  le variable 'num'.
+        PRE:
+            - joueur.pos doit être un int
+        POST:
+            - le joueur avance de 1 à 6 cases
+            - en fonction du type de case sur où le joueur fini un jeu, mini-jeu, rien ou la fin du jeu
+            - 60% de chance d'avoir un défi si le joueur tombe sur une case défi
+        """
+        valeur = random.randint(1, 6)
+        self.joueur.position += (valeur if (self.joueur.position + valeur) < len(self.cases) else len(
+            self.cases) - 1 - self.joueur.position)
 
 
 class MiniJeuMusical:
