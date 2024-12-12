@@ -76,7 +76,7 @@ class Menu:
             self.current_frame = (self.current_frame + 1) % len(self.gif_frames)
             self.background_label.configure(image=self.gif_frames[self.current_frame])
             self.fenetre.after(25, self.animate_gif)
-        except:
+        except ValueError:
             print("erreur fonction anime_gif")
 
     def start_game(self):
@@ -84,7 +84,7 @@ class Menu:
         self.fenetre.destroy()
 
         # Lance le plateau
-        plateau = LogicPlateau(60)
+        plateau = LogicPlateau(30)
         gui = GUIPlateau(plateau)
         gui.afficher()
 

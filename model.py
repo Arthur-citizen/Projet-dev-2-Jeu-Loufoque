@@ -196,7 +196,7 @@ class LogicPlateau:
         PRE : plat doit être une liste de liste de Case
         POST : Enleve les lignes et colones qui ne contiennent uniquement des cases de type vide.
         """
-        return
+
         for i in range(len(self.plateau) - 1, -1, -1):
             if all(cell.type == "VIDE" for cell in self.plateau[i]):
                 self.plateau.pop(i)
@@ -228,6 +228,7 @@ class LogicPlateau:
             position = (random.randint(0, self.size - 1), random.randint(0, self.size - 1))
             plateau = [[Case("VIDE") for _ in range(self.size)] for _ in range(self.size)]
             positions_occupees = {position}
+
             for case in self.cases:
                 plateau[position[0]][position[1]] = case
 
@@ -243,8 +244,8 @@ class LogicPlateau:
                     position_en_test = position_suivante.pop()
                     if (
                             position_en_test not in positions_occupees and (
-                            0 <= position_en_test[0] < len(plateau)) and (
-                            0 <= position_en_test[1] < len(plateau[0]))
+                            0 < position_en_test[0] < len(plateau)) and (
+                            0 < position_en_test[1] < len(plateau[0]))
                     ):
                         voisins = [
                             (position_en_test[0] + 1, position_en_test[1]),
@@ -264,6 +265,7 @@ class LogicPlateau:
                             trouve = True
                 if not trouve:
                     tentative += 1
+
             self.plateau = plateau
             return
 
