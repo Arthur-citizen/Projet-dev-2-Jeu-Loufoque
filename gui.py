@@ -93,6 +93,9 @@ class Menu:
 
 class Plateau:
     def __init__(self, nombre_cases):
+        self.taille_case = None
+        self.plateau = None
+        self.cases = None
         self.__couleurs = {  # Sert pour la couleur des cases
             "VIDE": "white",
             "NEUTRE": "blue",
@@ -142,23 +145,24 @@ class Plateau:
               -L'attribut Plateau doit être une liste de liste d'objet Case
         POST : Met a jour la postition de chaque case dans l'attribut Cases
         """
-        previous = None
-        act = self.trouveDepart()
-        self.cases[0].position = act
+        case_precedente = None
+        case_acutelle = self.trouve_depart()
+        self.cases[0].position = case_acutelle
         for i in range(1, len(self.cases)):
 
-            voisins = [(act[0] + 1, act[1]), (act[0] - 1, act[1]), (act[0], act[1] + 1), (act[0], act[1] - 1)]
+            voisins = [(case_acutelle[0] + 1, case_acutelle[1]), (case_acutelle[0] - 1, case_acutelle[1]),
+                       (case_acutelle[0], case_acutelle[1] + 1), (case_acutelle[0], case_acutelle[1] - 1)]
             for v in voisins:
-                if 0 <= v[0] < len(self.plateau) and 0 <= v[1] < len(self.plateau[0]) and self.plateau[v[0]][
-                    v[1]].type != "VIDE" and v != previous:
-                    self.cases[i].position = v
-                    previous = act
-                    act = v
-                    break
+                if 0 <= v[0] < len(self.plateau) and 0 <= v[1] < len(self.plateau[0]):
+                    if self.plateau[v[0]][v[1]].type != "VIDE" and v != case_precedente:
+                        self.cases[i].position = v
+                        case_precedente = case_acutelle
+                        case_acutelle = v
+                        break
 
     def create_cases(self):
         """
-        On fait en sorte d'avoir un certain nbCase de différent avec un type choisis aléatoirement, on commence
+        On fait en sorte d'avoir un certain nbCase de différent avec un type_case choisis aléatoirement, on commence
         toujours avec une case
         départ et fini par une case arrivé
 
@@ -166,27 +170,27 @@ class Plateau:
         POST : - Creer l'attribut cases qui contient une liste d'object Case
         """
         self.cases = [Case("DEPART")]
-        eventProb = 0.025
-        miniProb = 0.05
+        event_probabilite = 0.025
+        mini_jeu_probabilite = 0.05
         possiblilite = ["NEUTRE", "JEU", "EVENT"]
         # probabilité associé au différente possibilié, il faudrait en faire un dictionnaire
-        probabilites = [1 - miniProb - eventProb, miniProb, eventProb]
+        probabilites = [1 - mini_jeu_probabilite - event_probabilite, mini_jeu_probabilite, event_probabilite]
 
         for i in range(self.nombre_cases + 2):
-            # choisis un type de cases alléatoirement en fonction des probabilité
-            type = random.choices(possiblilite, weights=probabilites, k=1)[0]
-            self.cases.append(Case(type))
+            # choisis un type_case de cases alléatoirement en fonction des probabilité
+            type_case = random.choices(possiblilite, weights=probabilites, k=1)[0]
+            self.cases.append(Case(type_case))
 
-            if type == "JEU":
-                probabilites[1] = miniProb
-                probabilites[2] += eventProb
+            if type_case == "JEU":
+                probabilites[1] = mini_jeu_probabilite
+                probabilites[2] += event_probabilite
 
-            elif type == "EVENT":
-                probabilites[1] += miniProb
-                probabilites[2] = eventProb
+            elif type_case == "EVENT":
+                probabilites[1] += mini_jeu_probabilite
+                probabilites[2] = event_probabilite
             else:
-                probabilites[1] += miniProb
-                probabilites[2] += eventProb
+                probabilites[1] += mini_jeu_probabilite
+                probabilites[2] += event_probabilite
 
             probabilites[0] = 1 - probabilites[1] - probabilites[2]
 
@@ -194,7 +198,8 @@ class Plateau:
 
     def clear_matrice(self):
         """
-        Cette méthode sert a enlever toute les lignes/colones inutile pour que la taille du rectangle affiché soit le plus petit possible
+        Cette méthode sert a enlever toute les lignes/colones inutile pour que la taille du rectangle affiché soit le
+         plus petit possible
 
         PRE : plat doit être une liste de liste de Case
         POST : Enleve les lignes et colones qui ne contiennent uniquement des cases de type vide.
@@ -211,15 +216,16 @@ class Plateau:
                 for j in self.plateau:
                     j.pop(i)
 
-    def trouveDepart(self):
+    def trouve_depart(self):
         for i in range(len(self.plateau)):
             for j in range(len(self.plateau[i])):
                 if self.plateau[i][j].type == "DEPART":
-                    return (i, j)
+                    return i, j
 
     def faire_plateau(self):
         """
-        On essaye de faire placer toute les cases de self.cases l'une a la suite de l'autre de facon aléatoire, une case peut
+        On essaye de faire placer toute les cases de self.cases l'une a la suite de l'autre de facon aléatoire, une
+        case peut
         toucher une seul autre case et elle doivent rester dans un carré de taille self.size
         PRE : - self.size doit être un int >=0
               - self.cases doit être une liste d'objet Case non vide
@@ -227,55 +233,50 @@ class Plateau:
         POST : Place dans self.plateau une liste de liste d'Objet case formant un chemin de forme aléatoire
         RAISE : Si aucun placement n'est possible car un nombre trop élévé de case à placé, un erreur est déclanché
         """
-        temp = 0  # mettre un .time() pour avoir 220 sec de charge ou moins, on essaye {tentative} fois avec une taille de plateau et apres on augmente la taille
 
-        while temp < 100000:
-            tentative = 0
-            while tentative < 100:
-                position = (
-                    random.randint(0, self.size - 1), random.randint(0, self.size - 1))  # position de la case depart
-                plat = [[Case("VIDE") for i in range(self.size)] for j in
-                        range(self.size)]  # on remplit le plateau de cases vide
-                ban = {position}  # stok les positions utilisé
-                for cas in self.cases:
-                    print(cas)
-                    plat[position[0]][position[1]] = cas
+        tentative = 0
+        while tentative < 100:
+            position = (
+                random.randint(0, self.size - 1), random.randint(0, self.size - 1))  # position de la case depart
+            plateau = [[Case("VIDE") for _ in range(self.size)] for _ in range(self.size)]  # Remplit de vide
+            positions_occupe = {position}  # stok les positions utilisé
+            for case in self.cases:
+                plateau[position[0]][position[1]] = case
 
-                    nextPos = [(position[0] + 1, position[1]), (position[0] - 1, position[1]),
-                               (position[0], position[1] + 1),
-                               (position[0], position[1] - 1)]  # postions des cases dans les 4 directions
-                    random.shuffle(nextPos)  # change ordre
-                    find = False  # nouvelle position trouvé ?
-                    while not find and len(nextPos):
-                        tryy = nextPos.pop()  # on prend une pose pour essayer
+                position_suivante = [(position[0] + 1, position[1]), (position[0] - 1, position[1]),
+                                     (position[0], position[1] + 1),
+                                     (position[0], position[1] - 1)]  # postions des cases dans les 4 directions
+                random.shuffle(position_suivante)  # change ordre
+                trouve = False  # nouvelle position trouvé ?
+                while not trouve and len(position_suivante):
+                    position_en_test = position_suivante.pop()  # on prend une pose pour essayer
 
-                        if tryy not in ban and len(plat) > tryy[0] >= 0 and len(plat) > tryy[
-                            1] >= 0:  # on regarde si la case est déja utilisé ou si elle n'est pas dans les limites
-                            voisins = [(tryy[0] + 1, tryy[1]), (tryy[0] - 1, tryy[1]), (tryy[0], tryy[1] + 1),
-                                       (tryy[0], tryy[1] - 1)]  # voisin de la case a essayer
-                            ok = True  # est ce que tout les voisins sont vides ? (sauf celle de la case précédente car il doit y avoir un poitn d'accrochen entre 2 cases
-                            for v in voisins:
-                                if 0 <= v[0] < len(plat) and 0 <= v[1] < len(plat[0]):
-                                    if not (plat[v[0]][v[1]] == cas or plat[v[0]][
-                                        v[1]].type == "VIDE"):  # si un des voisins n'est pas vide
-                                        ok = False
-                                        break
+                    if (position_en_test not in positions_occupe and len(plateau) > position_en_test[0] >= 0 and (
+                            len(plateau) > position_en_test[1] >= 0)):
+                        voisins = [(position_en_test[0] + 1, position_en_test[1]),
+                                   (position_en_test[0] - 1, position_en_test[1]),
+                                   (position_en_test[0], position_en_test[1] + 1),
+                                   (position_en_test[0], position_en_test[1] - 1)]  # voisin de la case a essayer
+                        ok = True  # est ce que tout les voisins sont vides (expecté la précédente) ?
+                        for v in voisins:
+                            if 0 <= v[0] < len(plateau) and 0 <= v[1] < len(plateau[0]):
+                                if not (plateau[v[0]][v[1]] == case or plateau[v[0]][v[1]].type == "VIDE"):
+                                    ok = False
+                                    break
 
-                            if ok:
-                                position = tryy
-                                ban.add(position)
-                                find = True
-                    if not find:
-                        tentative += 1
-                self.plateau = plat
-                return
+                        if ok:
+                            position = position_en_test
+                            positions_occupe.add(position)
+                            trouve = True
+                if not trouve:
+                    tentative += 1
+            self.plateau = plateau
+            return
 
-            temp += 1
-            self.size += 5
-
-    def lancerDe(self):
+    def lancer_de(self):
         """
-        Cette fonction simule un lancé de dé à 6 côté, ensuite elle met le plateau de jeu à jour en fontion de la case sur où atterit le joueur.
+        Cette fonction simule un lancé de dé à 6 côté, ensuite elle met le plateau de jeu à jour en fontion de la case
+         sur où atterit le joueur.
         Elle renvoie le résultat du lancé de dé dans  le variable 'num'.
         PRE:
             - joueur.pos doit être un int
@@ -286,10 +287,10 @@ class Plateau:
 
 
         """
-        num = random.randint(1, 6)
+        valeur = random.randint(1, 6)
         self.joueur.position += (
-            num if (self.joueur.position + num) < len(self.cases) else len(self.cases) - 1 - self.joueur.position)
-        self.afficherPlateau()
+            valeur if (self.joueur.position + valeur) < len(self.cases) else len(self.cases) - 1 - self.joueur.position)
+        self.afficher_plateau()
 
         if self.cases[self.joueur.position].type == "JEU":
             self.root.update_idletasks()
@@ -301,7 +302,7 @@ class Plateau:
             self.clear_matrice()
             self.update_pos_in_case()
             self.taille_case = self.calculer_taille_case()
-            self.afficherPlateau()
+            self.afficher_plateau()
         elif self.cases[self.joueur.position].type == "ARRIVE":
             print("win gg")
             self.root.quit()
@@ -309,11 +310,11 @@ class Plateau:
         else:
             if random.randint(1, 10) > 4:
                 t = (random.choice(self.defi))
-                if type(t) == list:
+                if type(t) is list:
                     t = random.choice(t)
                 print(t)
 
-    def afficherPlateau(self):
+    def afficher_plateau(self):
         """
         Cette méthode affiche avec un interface graphique le plateau de jeu et le joueur
 
@@ -334,10 +335,10 @@ class Plateau:
                 self.canvas.create_rectangle(x0, y0, x1, y1, fill=couleur,
                                              outline=("black" if couleur != "white" else ""))
 
-        joueurY = self.cases[self.joueur.position].position[0] * self.taille_case + self.taille_case // 2
-        joueurX = self.cases[self.joueur.position].position[1] * self.taille_case + self.taille_case // 2
-        self.canvas.create_oval(joueurX - self.taille_case // 4, joueurY - self.taille_case // 4,
-                                joueurX + self.taille_case // 4, joueurY + self.taille_case // 4,
+        joueur_pos_y = self.cases[self.joueur.position].position[0] * self.taille_case + self.taille_case // 2
+        joueur_pos_x = self.cases[self.joueur.position].position[1] * self.taille_case + self.taille_case // 2
+        self.canvas.create_oval(joueur_pos_x - self.taille_case // 4, joueur_pos_y - self.taille_case // 4,
+                                joueur_pos_x + self.taille_case // 4, joueur_pos_y + self.taille_case // 4,
                                 fill=self.__couleurs["JOUEUR"])
 
     def calculer_taille_case(self):
@@ -365,9 +366,9 @@ class Plateau:
         self.canvas = tk.Canvas(self.root, width=self.largeur_fenetre, height=self.hauteur_fenetre)
         self.canvas.pack()
 
-        bouton_De = tk.Button(self.root, text="Lancer le dé", command=self.lancerDe)
-        bouton_De.pack()
-        self.afficherPlateau()
+        bouton_de = tk.Button(self.root, text="Lancer le dé", command=self.lancer_de)
+        bouton_de.pack()
+        self.afficher_plateau()
 
         self.root.mainloop()
 

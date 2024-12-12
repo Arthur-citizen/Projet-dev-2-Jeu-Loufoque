@@ -40,7 +40,7 @@ class Phrase:
             print("Tu as réussi mais il suffisait de lire de droite à gauche, pas de quoi s'extasier. :|")
             return True
         else:
-            print(f"Raté alors qu'il te suffisait de lire de droite à gauche...")
+            print("Raté alors qu'il te suffisait de lire de droite à gauche...")
             return False
 
 
@@ -151,7 +151,7 @@ class MiniJeuMusical:
         # joue le fichier wav
         print("Quelle titre te vient en tête ?")
         try:
-            print(f"Lecture du fichier : HAHA tu pensais avoir la réponse comme ça ??!!!")
+            print("Lecture du fichier : HAHA tu pensais avoir la réponse comme ça ??!!!")
             playsound(self.chemin_fichier)
         except Exception as e:
             print(f"Erreur lors de la lecture du fichier wav : {e}")

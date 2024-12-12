@@ -81,7 +81,7 @@ class TestGameMethods(unittest.TestCase):
         self.plateau.joueur = Joueur(0)  # Position initiale du joueur
 
         # Appel de la méthode à tester
-        self.plateau.afficherPlateau()
+        self.plateau.afficher_plateau()
 
         # Vérification des rectangles dessinés (correspondant aux cases)
         self.assertEqual(self.plateau.canvas.create_rectangle.call_count, 9,
